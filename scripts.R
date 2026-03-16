@@ -1,6 +1,33 @@
 library(tidyverse)
 library(readxl)
 
+included_cd <- c("satu",
+                 "dua",
+                 "tiga",
+                 "lima",
+                 "empat",
+                 "enam",
+                 "delapan",
+                 "tujuh",
+                 "sepuluh",
+                 "belas",
+                 "sembilan",
+                 "puluh",
+                 "seribu",
+                 "sejuta",
+                 "sebelas",
+                 "seratus",
+                 "ratus",
+                 "triliun",
+                 "ribu",
+                 "juta",
+                 "miliar",
+                 "milliar",
+                 "semiliar",
+                 "semilliar",
+                 "milyar",
+                 "semilyar")
+
 # load annotated Excel data
 coll_df <- read_xlsx("data/Coll1R1R_WithSemanticsForPaperYear2.xlsx",
                      sheet = "all buah") |> 
@@ -43,6 +70,21 @@ wfreq2 <- wfreq1 |>
 wfreq3 <- wfreq2 |> 
   filter(nn %in% tolower(coll_df$Word))
 wfreq3
+
+wfreq3 |> 
+  filter(cd %in% included_cd | str_detect(cd, "[0-9]+")) |> 
+  pull(nn) |> 
+  unique()
+
+
+
+
+
+
+
+
+
+
 
 # the unique noun-type that can and cannot appear with clf. in CD + (clf.) + N
 wfreq3 |> 

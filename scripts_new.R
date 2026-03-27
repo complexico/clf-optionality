@@ -1,5 +1,12 @@
 library(tidyverse)
 library(readxl)
+
+# load annotated Excel data
+coll_df <- read_xlsx("data/Coll1R1R_WithSemanticsForPaperYear2.xlsx",
+                     sheet = "all buah") |>
+  # filter out observations that are NOT "se-"
+  filter(SearchKeyword != "se")
+
 # read frequency breakdown for CD + NN
 cd_nn_freq <- read_xlsx("data/cd_nn_freq.xlsx") |> 
   separate_wider_delim(cols = Search_result,
@@ -14,6 +21,7 @@ cd_nn_freq <- read_xlsx("data/cd_nn_freq.xlsx") |>
   summarise(Token = sum(Token)) |> 
   arrange(desc(Token)) |> 
   ungroup()
+
 # read frequency breakdown for CD + buah + NN
 cd_buah_nn_freq <- read_xlsx("data/cd_buah_nn_freq.xlsx") |> 
   separate_wider_delim(cols = Search_result,
@@ -62,28 +70,52 @@ excluded_nn <- c("orang", "ekor",
                  "hari", "detik", "menit",
                  "dekade", "jam", "minggu",
                  "pekan",
-                 "rupiah")
+                 "rupiah",
+                 "ayat", "huruf",
+                 "hari", "hr",
+                 "thn", "persen",
+                 "dollar", "dolar", "euro",
+                 "m", "ml", "g", "mg", "gram")
 
-# load annotated Excel data
-# coll_df <- read_xlsx("data/Coll1R1R_WithSemanticsForPaperYear2.xlsx",
-#                      sheet = "all buah") |> 
-#   # filter out observations that are NOT "se-"
-#   filter(SearchKeyword != "se")
-
+# subsetting the CD+NN freq data
 cd_nn_freq |> 
   filter(!nn %in% excluded_nn) |> 
   filter(cd %in% included_cd|str_detect(cd, "[0-9]+")) |> 
   filter(str_detect(nn, "^(wi(b|ta?)$|\\-)", negate = TRUE)) |> 
   filter(str_detect(cd, "^\\d\\.\\d$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^.{1,2}$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^rp[0-9]", negate = TRUE)) |> 
+  filter(str_detect(nn, "^[[:punct:]]$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^(thn|bln|hr|ml)\\b", negate = TRUE)) |> 
   mutate(nn_corrected = "") |> 
   relocate(nn_corrected, .before = Token) |> 
   writexl::write_xlsx(path = "data/cd_nn_freq_filtered.xlsx")
 
+# cd_nn_freq data whose nn is available from Karlina's Excel, manually-checked data
+cd_nn_freq |> 
+  filter(!nn %in% excluded_nn) |> 
+  filter(cd %in% included_cd|str_detect(cd, "[0-9]+")) |> 
+  filter(str_detect(nn, "^(wi(b|ta?)$|\\-)", negate = TRUE)) |> 
+  filter(str_detect(cd, "^\\d\\.\\d$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^.{1,2}$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^rp[0-9]", negate = TRUE)) |> 
+  filter(str_detect(nn, "^[[:punct:]]$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^(thn|bln|hr|ml)\\b", negate = TRUE)) |> 
+  mutate(nn_corrected = "") |> 
+  relocate(nn_corrected, .before = Token) |> 
+  filter(nn %in% str_to_lower(coll_df$Word)) |> 
+  writexl::write_xlsx(path = "data/cd_nn_freq_filtered_from_Karlina_Excel.xlsx")
+
+# subsetting the CD+buah+NN data
 cd_buah_nn_freq |> 
   filter(!nn %in% excluded_nn) |> 
   filter(cd %in% included_cd|str_detect(cd, "[0-9]+")) |> 
   filter(str_detect(nn, "^(wi(b|ta?)$|\\-)", negate = TRUE)) |> 
   filter(str_detect(cd, "^\\d\\.\\d$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^.{1,2}$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^rp[0-9]", negate = TRUE)) |> 
+  filter(str_detect(nn, "^[[:punct:]]$", negate = TRUE)) |> 
+  filter(str_detect(nn, "^(thn|bln|hr|ml)\\b", negate = TRUE)) |> 
   mutate(nn_corrected = "") |> 
   relocate(nn_corrected, .before = Token) |> 
   writexl::write_xlsx(path = "data/cd_buah_nn_freq_filtered.xlsx")

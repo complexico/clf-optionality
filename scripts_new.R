@@ -119,3 +119,20 @@ cd_buah_nn_freq |>
   mutate(nn_corrected = "") |> 
   relocate(nn_corrected, .before = Token) |> 
   writexl::write_xlsx(path = "data/cd_buah_nn_freq_filtered.xlsx")
+
+# read frequency breakdown for CD + buah + NN from Karlina's assistant
+cd_buah_nn_freq_checked <- read_xlsx("data/ForAssistants.xlsx",
+                                     sheet = 2)
+
+cd_buah_nn_freq_checked_01 <- cd_buah_nn_freq_checked |> 
+  filter(is.na(Confidence))
+
+# read frequency breakdown for CD + NN
+## cd_nn_freq data whose nn is available from Karlina's Excel, manually-checked data
+cd_nn_freq <- read_xlsx("data/cd_nn_freq_filtered.xlsx")
+cd_nn_freq_00 <- read_xlsx("data/cd_nn_freq_filtered_from_Karlina_Excel.xlsx")
+cd_nn_freq_01 <- cd_nn_freq |> 
+  filter(nn %in% cd_buah_nn_freq_checked_01$nn)
+nn_combined <- unique(c(cd_nn_freq_00$nn, cd_nn_freq_01$nn))
+cd_nn_freq_02 <- cd_nn_freq |> 
+  filter(nn %in% nn_combined)
